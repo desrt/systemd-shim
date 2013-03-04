@@ -29,7 +29,7 @@ lookup_unit (GVariant  *parameters,
 
   g_variant_get_child (parameters, 0, "&s", &unit_name);
 
-  if (!g_str_equal (unit_name, "ntpd.service"))
+  if (!g_str_equal (unit_name, "ntpd.service") || !_get_can_use_ntp_debian ())
     {
       g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_FILE_NOT_FOUND,
                    "Unknown unit: %s", unit_name);

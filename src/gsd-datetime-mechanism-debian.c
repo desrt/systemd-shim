@@ -22,52 +22,50 @@
 #include "gsd-datetime-mechanism-debian.h"
 
 static gboolean
-_get_using_ntpdate (gboolean *can_use, gboolean *is_using)
+_get_can_use_ntpdate (void)
 {
-  if (!g_file_test ("/usr/sbin/ntpdate-debian", G_FILE_TEST_EXISTS))
-    return TRUE;
-
-  *can_use = TRUE;
-
-  if (g_file_test ("/etc/network/if-up.d/ntpdate", G_FILE_TEST_EXISTS))
-    *is_using = TRUE;
-
-  return TRUE;
+  return g_file_test ("/usr/sbin/ntpdate-debian", G_FILE_TEST_EXISTS);
 }
 
 static gboolean
-_get_using_ntpd (gboolean *can_use, gboolean *is_using)
+_get_using_ntpdate (void)
+{
+  if (!_get_can_use_ntpdate ())
+    return FALSE;
+
+  return g_file_test ("/etc/network/if-up.d/ntpdate", G_FILE_TEST_EXISTS);
+}
+
+static gboolean
+_get_can_use_ntpd (void)
+{
+  return g_file_test ("/usr/sbin/ntpd", G_FILE_TEST_EXISTS);
+}
+
+static gboolean
+_get_using_ntpd (void)
 {
   int exit_status;
 
-  if (!g_file_test ("/usr/sbin/ntpd", G_FILE_TEST_EXISTS))
-    return TRUE;
-
-  *can_use = TRUE;
+  if (!_get_can_use_ntpd ())
+    return FALSE;
 
   if (!g_spawn_command_line_sync ("/usr/sbin/service ntp status", NULL, NULL, &exit_status, NULL))
     return FALSE;
 
-  if (exit_status == 0)
-    *is_using = TRUE;
+  return exit_status == 0;
+}
 
-  return TRUE;
+gboolean
+_get_can_use_ntp_debian (void)
+{
+  return _get_can_use_ntpdate () || _get_can_use_ntpd ();
 }
 
 gboolean
 _get_using_ntp_debian (void)
 {
-  gboolean can_use_ntp = FALSE;
-  gboolean is_using_ntp = FALSE;
-  gboolean success;
-
-  /* In Debian, ntpdate is used whenever the network comes up. So if
-     either ntpdate or ntpd is installed and available, can_use is true.
-     If either is active, is_using is true. */
-  success = _get_using_ntpdate (&can_use_ntp, &is_using_ntp) &&
-            _get_using_ntpd (&can_use_ntp, &is_using_ntp);
-
-  return success && is_using_ntp;
+  return _get_using_ntpdate () || _get_using_ntpd ();
 }
 
 static gboolean
@@ -75,6 +73,9 @@ _set_using_ntpdate (gboolean   using_ntp,
                     GError   **error)
 {
   const gchar *cmd = NULL;
+
+  if (!_get_can_use_ntpdate ())
+    return TRUE;
 
   /* Debian uses an if-up.d script to sync network time when an interface
      comes up.  This is a separate mechanism from ntpd altogether. */
@@ -106,7 +107,7 @@ _set_using_ntpd (gboolean   using_ntp,
   int exit_status;
   char *cmd;
 
-  if (!g_file_test ("/usr/sbin/ntpd", G_FILE_TEST_EXISTS))
+  if (!_get_can_use_ntpd ())
     return TRUE;
 
   cmd = g_strconcat ("/usr/sbin/update-rc.d ntp ", using_ntp ? "enable" : "disable", NULL);

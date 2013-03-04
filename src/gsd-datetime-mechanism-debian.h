@@ -21,7 +21,7 @@
 
 #include <gio/gio.h>
 
-gboolean _get_ntp_available (void);
+gboolean _get_can_use_ntp_debian (void);
 gboolean _get_using_ntp_debian (void);
 gboolean _set_using_ntp_debian (gboolean   using_ntp,
                                 GError   **error);

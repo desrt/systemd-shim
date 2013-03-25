@@ -133,7 +133,7 @@ shim_get_property (GDBusConnection  *connection,
                    GError          **error,
                    gpointer          user_data)
 {
-  const gchar *id;
+  const gchar *id = "";
 
   had_activity ();
 

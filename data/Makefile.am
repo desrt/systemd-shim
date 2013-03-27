@@ -2,6 +2,9 @@ dbusservicedir = $(prefix)/share/dbus-1/system-services
 dbusservice_DATA = org.freedesktop.systemd1.service
 CLEANFILES = $(dbusservice_DATA)
 
+ntpunitsdir = $(prefix)/lib/systemd/ntp-units.d
+dist_ntpunits_DATA = systemd-shim.list
+
 dbuspolicydir = $(sysconfdir)/dbus-1/system.d
 dist_dbuspolicy_DATA = org.freedesktop.systemd1.conf
 

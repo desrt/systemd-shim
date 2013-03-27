@@ -1,0 +1,13 @@
+Changes in version 2
+=====================
+
+ - Install a ntp-units.d file so that never versions of timedated don't assume
+   that NTP is impossible.
+
+ - dist the NEWS
+
+Changes in version 1
+=====================
+
+ - Initialise the Virtualization id variable so that we return "" in the
+   case that detecting virtualisation fails.

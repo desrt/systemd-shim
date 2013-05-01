@@ -21,33 +21,40 @@
 
 #include "unit.h"
 
+#include <stdio.h>
+
+#define NTPDATE_ENABLED   "/etc/network/if-up.d/ntpdate"
+#define NTPDATE_DISABLED  "/etc/network/if-up.d/ntpdate.disabled"
+#define NTPDATE_AVAILABLE "/usr/sbin/ntpdate-debian"
+#define NTPD_AVAILABLE    "/usr/sbin/ntpd"
+
 static gboolean
-_get_can_use_ntpdate (void)
+ntp_unit_get_can_use_ntpdate (void)
 {
-  return g_file_test ("/usr/sbin/ntpdate-debian", G_FILE_TEST_EXISTS);
+  return g_file_test (NTPDATE_AVAILABLE, G_FILE_TEST_EXISTS);
 }
 
 static gboolean
-_get_using_ntpdate (void)
+ntp_unit_get_using_ntpdate (void)
 {
-  if (!_get_can_use_ntpdate ())
+  if (!ntp_unit_get_can_use_ntpdate ())
     return FALSE;
 
-  return g_file_test ("/etc/network/if-up.d/ntpdate", G_FILE_TEST_EXISTS);
+  return g_file_test (NTPDATE_ENABLED, G_FILE_TEST_EXISTS);
 }
 
 static gboolean
-_get_can_use_ntpd (void)
+ntp_unit_get_can_use_ntpd (void)
 {
-  return g_file_test ("/usr/sbin/ntpd", G_FILE_TEST_EXISTS);
+  return g_file_test (NTPD_AVAILABLE, G_FILE_TEST_EXISTS);
 }
 
 static gboolean
-_get_using_ntpd (void)
+ntp_unit_get_using_ntpd (void)
 {
   int exit_status;
 
-  if (!_get_can_use_ntpd ())
+  if (!ntp_unit_get_can_use_ntpd ())
     return FALSE;
 
   if (!g_spawn_command_line_sync ("/usr/sbin/service ntp status", NULL, NULL, &exit_status, NULL))
@@ -56,92 +63,35 @@ _get_using_ntpd (void)
   return exit_status == 0;
 }
 
-static gboolean
-_get_can_use_ntp_debian (void)
+static void
+ntp_unit_set_using_ntpdate (gboolean using_ntp)
 {
-  return _get_can_use_ntpdate () || _get_can_use_ntpd ();
-}
+  if (using_ntp == ntp_unit_get_using_ntpdate ())
+    return;
 
-static gboolean
-_get_using_ntp_debian (void)
-{
-  return _get_using_ntpdate () || _get_using_ntpd ();
-}
+  if (using_ntp)
+    {
+      rename (NTPDATE_DISABLED, NTPDATE_ENABLED);
 
-static gboolean
-_set_using_ntpdate (gboolean   using_ntp,
-                    GError   **error)
-{
-  const gchar *cmd = NULL;
-
-  if (!_get_can_use_ntpdate ())
-    return TRUE;
-
-  /* Debian uses an if-up.d script to sync network time when an interface
-     comes up.  This is a separate mechanism from ntpd altogether. */
-
-#define NTPDATE_ENABLED  "/etc/network/if-up.d/ntpdate"
-#define NTPDATE_DISABLED "/etc/network/if-up.d/ntpdate.disabled"
-
-  if (using_ntp && g_file_test (NTPDATE_DISABLED, G_FILE_TEST_EXISTS))
-    cmd = "/bin/mv -f "NTPDATE_DISABLED" "NTPDATE_ENABLED;
-  else if (!using_ntp && g_file_test (NTPDATE_ENABLED, G_FILE_TEST_EXISTS))
-    cmd = "/bin/mv -f "NTPDATE_ENABLED" "NTPDATE_DISABLED;
+      /* Kick start ntpdate to sync time immediately */
+      g_spawn_command_line_sync ("/etc/network/if-up.d/ntpdate", NULL, NULL, NULL, NULL);
+    }
   else
-    return TRUE;
-
-  if (!g_spawn_command_line_sync (cmd, NULL, NULL, NULL, error))
-    return FALSE;
-
-  /* Kick start ntpdate to sync time immediately */
-  if (using_ntp && !g_spawn_command_line_sync ("/etc/network/if-up.d/ntpdate", NULL, NULL, NULL, error))
-    return FALSE;
-
-  return TRUE;
+    rename (NTPDATE_ENABLED, NTPDATE_DISABLED);
 }
 
-static gboolean
-_set_using_ntpd (gboolean   using_ntp,
-                 GError   **error)
+static void
+ntp_unit_set_using_ntpd (gboolean using_ntp)
 {
-  int exit_status;
   char *cmd;
 
-  if (!_get_can_use_ntpd ())
-    return TRUE;
-
   cmd = g_strconcat ("/usr/sbin/update-rc.d ntp ", using_ntp ? "enable" : "disable", NULL);
-
-  if (!g_spawn_command_line_sync (cmd, NULL, NULL, &exit_status, error))
-    {
-      g_free (cmd);
-      return FALSE;
-    }
-
+  g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
   g_free (cmd);
 
   cmd = g_strconcat ("/usr/sbin/service ntp ", using_ntp ? "restart" : "stop", NULL);;
-
-  if (!g_spawn_command_line_sync (cmd, NULL, NULL, &exit_status, error))
-    {
-      g_free (cmd);
-      return FALSE;
-    }
-
+  g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
   g_free (cmd);
-
-  return TRUE;
-}
-
-static gboolean
-_set_using_ntp_debian (gboolean   using_ntp,
-                       GError   **error)
-{
-  /* In Debian, ntpdate and ntpd may be installed separately, so don't
-     assume both are valid. */
-
-  return _set_using_ntpdate (using_ntp, error) &&
-         _set_using_ntpd (using_ntp, error);
 }
 
 typedef Unit NtpUnit;
@@ -153,25 +103,36 @@ G_DEFINE_TYPE (NtpUnit, ntp_unit, UNIT_TYPE)
 static void
 ntp_unit_start (Unit *unit)
 {
-  _set_using_ntp_debian (TRUE, NULL);
+  if (ntp_unit_get_can_use_ntpdate ())
+    ntp_unit_set_using_ntpdate (TRUE);
+
+  if (ntp_unit_get_can_use_ntpd ())
+    ntp_unit_set_using_ntpd (TRUE);
 }
 
 static void
 ntp_unit_stop (Unit *unit)
 {
-  _set_using_ntp_debian (FALSE, NULL);
+  if (ntp_unit_get_can_use_ntpdate ())
+    ntp_unit_set_using_ntpdate (FALSE);
+
+  if (ntp_unit_get_can_use_ntpd ())
+    ntp_unit_set_using_ntpd (FALSE);
 }
 
 static const gchar *
 ntp_unit_get_state (Unit *unit)
 {
-  return _get_using_ntp_debian () ? "enabled" : "disabled";
+  if (ntp_unit_get_using_ntpdate () || ntp_unit_get_using_ntpd ())
+    return "enabled";
+  else
+    return "disabled";
 }
 
 Unit *
 ntp_unit_get (void)
 {
-  if (_get_can_use_ntp_debian ())
+  if (ntp_unit_get_can_use_ntpdate () || ntp_unit_get_can_use_ntpd ())
     return g_object_new (ntp_unit_get_type (), NULL);
 
   return NULL;

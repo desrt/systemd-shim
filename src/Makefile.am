@@ -1,7 +1,6 @@
 AM_CFLAGS = $(gio_CFLAGS)
 
 gsd_imports = \
-	gsd-datetime-mechanism-debian.h		\
 	gsd-datetime-mechanism-debian.c
 
 systemd_imports = \

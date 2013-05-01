@@ -67,6 +67,7 @@ shim_method_call (GDBusConnection       *connection,
         {
           g_dbus_method_invocation_return_value (invocation,
                                                  g_variant_new ("(s)", unit_get_state (unit)));
+          g_object_unref (unit);
           return;
         }
     }
@@ -99,6 +100,7 @@ shim_method_call (GDBusConnection       *connection,
         {
           unit_stop (unit);
           g_dbus_method_invocation_return_value (invocation, g_variant_new ("(o)", "/"));
+          g_object_unref (unit);
           return;
         }
     }
@@ -113,6 +115,7 @@ shim_method_call (GDBusConnection       *connection,
         {
           unit_start (unit);
           g_dbus_method_invocation_return_value (invocation, g_variant_new ("(o)", "/"));
+          g_object_unref (unit);
           return;
         }
     }

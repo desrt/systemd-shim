@@ -19,7 +19,7 @@
  * USA.
  */
 
-#include "gsd-datetime-mechanism-debian.h"
+#include "unit.h"
 
 static gboolean
 _get_can_use_ntpdate (void)
@@ -56,13 +56,13 @@ _get_using_ntpd (void)
   return exit_status == 0;
 }
 
-gboolean
+static gboolean
 _get_can_use_ntp_debian (void)
 {
   return _get_can_use_ntpdate () || _get_can_use_ntpd ();
 }
 
-gboolean
+static gboolean
 _get_using_ntp_debian (void)
 {
   return _get_using_ntpdate () || _get_using_ntpd ();
@@ -133,7 +133,7 @@ _set_using_ntpd (gboolean   using_ntp,
   return TRUE;
 }
 
-gboolean
+static gboolean
 _set_using_ntp_debian (gboolean   using_ntp,
                        GError   **error)
 {
@@ -142,4 +142,50 @@ _set_using_ntp_debian (gboolean   using_ntp,
 
   return _set_using_ntpdate (using_ntp, error) &&
          _set_using_ntpd (using_ntp, error);
+}
+
+typedef Unit NtpUnit;
+typedef UnitClass NtpUnitClass;
+static GType ntp_unit_get_type (void);
+
+G_DEFINE_TYPE (NtpUnit, ntp_unit, UNIT_TYPE)
+
+static void
+ntp_unit_start (Unit *unit)
+{
+  _set_using_ntp_debian (TRUE, NULL);
+}
+
+static void
+ntp_unit_stop (Unit *unit)
+{
+  _set_using_ntp_debian (FALSE, NULL);
+}
+
+static const gchar *
+ntp_unit_get_state (Unit *unit)
+{
+  return _get_using_ntp_debian () ? "enabled" : "disabled";
+}
+
+Unit *
+ntp_unit_get (void)
+{
+  if (_get_can_use_ntp_debian ())
+    return g_object_new (ntp_unit_get_type (), NULL);
+
+  return NULL;
+}
+
+static void
+ntp_unit_init (Unit *unit)
+{
+}
+
+static void
+ntp_unit_class_init (UnitClass *class)
+{
+  class->start = ntp_unit_start;
+  class->stop = ntp_unit_stop;
+  class->get_state = ntp_unit_get_state;
 }

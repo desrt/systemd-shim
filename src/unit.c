@@ -19,24 +19,35 @@
 
 #include "unit.h"
 
-#include "gsd-datetime-mechanism-debian.h"
+G_DEFINE_TYPE (Unit, unit, G_TYPE_OBJECT)
+
+static void
+unit_init (Unit *unit)
+{
+}
+
+static void
+unit_class_init (UnitClass *class)
+{
+}
 
 Unit *
 lookup_unit (GVariant  *parameters,
              GError   **error)
 {
   const gchar *unit_name;
+  Unit *unit = NULL;
 
   g_variant_get_child (parameters, 0, "&s", &unit_name);
 
-  if (!g_str_equal (unit_name, "ntpd.service") || !_get_can_use_ntp_debian ())
-    {
-      g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_FILE_NOT_FOUND,
-                   "Unknown unit: %s", unit_name);
-      return NULL;
-    }
+  if (g_str_equal (unit_name, "ntpd.service"))
+    unit = ntp_unit_get ();
 
-  return (void *) 0x1;
+  if (unit == NULL)
+    g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_FILE_NOT_FOUND,
+                 "Unknown unit: %s", unit_name);
+
+  return unit;
 }
 
 const gchar *
@@ -44,7 +55,7 @@ unit_get_state (Unit *unit)
 {
   g_return_val_if_fail (unit != NULL, NULL);
 
-  return _get_using_ntp_debian () ? "enabled" : "disabled";
+  return UNIT_GET_CLASS (unit)->get_state (unit);
 }
 
 void
@@ -52,7 +63,7 @@ unit_start (Unit *unit)
 {
   g_return_if_fail (unit != NULL);
 
-  _set_using_ntp_debian (TRUE, NULL);
+  return UNIT_GET_CLASS (unit)->start (unit);
 }
 
 void
@@ -60,5 +71,5 @@ unit_stop (Unit *unit)
 {
   g_return_if_fail (unit != NULL);
 
-  _set_using_ntp_debian (FALSE, NULL);
+  return UNIT_GET_CLASS (unit)->stop (unit);
 }

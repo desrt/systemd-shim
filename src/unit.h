@@ -20,13 +20,28 @@
 #ifndef _unit_h_
 #define _unit_h_
 
-#include <glib.h>
+#include <gio/gio.h>
 
-typedef struct _Unit Unit;
+#define UNIT_TYPE (unit_get_type ())
+#define UNIT_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), UNIT_TYPE, UnitClass))
 
+typedef GObject Unit;
+
+typedef struct
+{
+  GObjectClass parent_class;
+
+  const gchar * (* get_state) (Unit *unit);
+  void (* start) (Unit *unit);
+  void (* stop) (Unit *unit);
+} UnitClass;
+
+GType unit_get_type (void);
 Unit *lookup_unit (GVariant *parameters, GError **error);
 const gchar *unit_get_state (Unit *unit);
 void unit_start (Unit *unit);
 void unit_stop (Unit *unit);
+
+Unit *ntp_unit_get (void);
 
 #endif /* _unit_h_ */

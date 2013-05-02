@@ -115,6 +115,9 @@ shim_method_call (GDBusConnection       *connection,
         {
           unit_start (unit);
           g_dbus_method_invocation_return_value (invocation, g_variant_new ("(o)", "/"));
+          g_dbus_connection_emit_signal (connection, sender, "/org/freedesktop/systemd1",
+                                         "org.freedesktop.systemd1.Manager", "JobRemoved",
+                                         g_variant_new ("(uoss)", 0, "/", "", ""), NULL);
           g_object_unref (unit);
           return;
         }

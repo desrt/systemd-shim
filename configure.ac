@@ -1,4 +1,4 @@
-AC_INIT([systemd-shim], [2])
+AC_INIT([systemd-shim], [3])
 AM_INIT_AUTOMAKE([1.11 foreign -Wno-portability no-dist-gzip dist-xz])
 AM_SILENT_RULES([yes])
 AC_PROG_CC

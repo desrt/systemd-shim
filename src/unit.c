@@ -43,6 +43,18 @@ lookup_unit (GVariant  *parameters,
   if (g_str_equal (unit_name, "ntpd.service"))
     unit = ntp_unit_get ();
 
+  if (g_str_equal (unit_name, "suspend.target"))
+    unit = power_unit_new (POWER_SUSPEND);
+
+  else if (g_str_equal (unit_name, "hibernate.target"))
+    unit = power_unit_new (POWER_HIBERNATE);
+
+  else if (g_str_equal (unit_name, "reboot.target"))
+    unit = power_unit_new (POWER_REBOOT);
+
+  else if (g_str_equal (unit_name, "shutdown.target") || g_str_equal (unit_name, "poweroff.target"))
+    unit = power_unit_new (POWER_OFF);
+
   if (unit == NULL)
     g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_FILE_NOT_FOUND,
                  "Unknown unit: %s", unit_name);

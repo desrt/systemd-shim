@@ -44,4 +44,15 @@ void unit_stop (Unit *unit);
 
 Unit *ntp_unit_get (void);
 
+typedef enum
+{
+  POWER_OFF,
+  POWER_REBOOT,
+  POWER_SUSPEND,
+  POWER_HIBERNATE,
+  N_POWER_ACTIONS
+} PowerAction;
+
+Unit *power_unit_new (PowerAction action);
+
 #endif /* _unit_h_ */

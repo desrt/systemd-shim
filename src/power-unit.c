@@ -42,12 +42,13 @@ typedef struct
 
 G_DEFINE_TYPE (PowerUnit, power_unit, UNIT_TYPE)
 
+gboolean in_shutdown;
+
 static void
 power_unit_start (Unit *unit)
 {
   PowerUnit *pu = (PowerUnit *) unit;
   static gint64 last_suspend_time;
-  static gboolean in_shutdown;
 
   /* If we request power off or reboot actions then we should ignore any
    * suspend or hibernate actions that come after this.

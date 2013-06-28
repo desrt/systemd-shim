@@ -29,7 +29,12 @@
 static gboolean
 exit_on_inactivity (gpointer user_data)
 {
-  exit (0);
+  extern gboolean in_shutdown;
+
+  if (!in_shutdown)
+    exit (0);
+
+  return FALSE;
 }
 
 static void

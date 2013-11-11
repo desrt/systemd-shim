@@ -32,7 +32,15 @@ exit_on_inactivity (gpointer user_data)
   extern gboolean in_shutdown;
 
   if (!in_shutdown)
-    exit (0);
+    {
+      GDBusConnection *session_bus;
+
+      session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+      g_dbus_connection_flush_sync (session_bus, NULL, NULL);
+      g_object_unref (session_bus);
+
+      exit (0);
+    }
 
   return FALSE;
 }

@@ -1,3 +1,16 @@
+Changes in version 4
+=====================
+
+ - don't exit-on-idle while shutting down to avoid losing the flag
+   that tells us we are in the middle of a shutdown
+
+ - flush bus before exiting on idle to avoid a race where a message
+   is queued up but not yet sent
+
+ - adjust the definition of "inactivity" to be 10 seconds after done
+   processing the last request instead of 10 seconds after we started.
+   This matters for long-running tasks (like suspends).
+
 Changes in version 3
 =====================
 

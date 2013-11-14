@@ -1,3 +1,10 @@
+Changes in version 5
+=====================
+
+ - write a sendsigs.omit.d file to prevent upstart from killing us
+   during shutdown.  This should fix the suspend-when-shutting-down
+   issue once and for all.
+
 Changes in version 4
 =====================
 

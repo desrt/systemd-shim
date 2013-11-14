@@ -20,6 +20,7 @@
 #include "unit.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -55,7 +56,20 @@ power_unit_start (Unit *unit)
    */
   if (pu->action == POWER_OFF || pu->action == POWER_REBOOT)
     {
+      GError* error = NULL;
+      gchar pid_str[20];
+
       in_shutdown = TRUE;
+
+      /* avoid being killed during shutdown, so that we can keep our
+       * in_shutdown state */
+      snprintf (pid_str, sizeof (pid_str), "%u", getpid ());
+      if (!g_file_set_contents ("/run/sendsigs.omit.d/systemd-shim.pid", pid_str, -1, &error))
+        {
+          g_critical ("Unable to write sendsigs.omit.d pid file: %s", error->message);
+          g_error_free (error);
+        }
+
       if (system (power_cmds[pu->action]) != 0)
         g_warning ("Error while running '%s'", power_cmds[pu->action]);
     }

@@ -33,11 +33,11 @@ exit_on_inactivity (gpointer user_data)
 
   if (!in_shutdown)
     {
-      GDBusConnection *session_bus;
+      GDBusConnection *system_bus;
 
-      session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-      g_dbus_connection_flush_sync (session_bus, NULL, NULL);
-      g_object_unref (session_bus);
+      system_bus = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
+      g_dbus_connection_flush_sync (system_bus, NULL, NULL);
+      g_object_unref (system_bus);
 
       exit (0);
     }

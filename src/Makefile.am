@@ -11,9 +11,12 @@ libexec_PROGRAMS = systemd-shim
 systemd_shim_LDADD = $(gio_LIBS)
 systemd_shim_SOURCES = \
 	$(systemd_imports)	\
+	cgmanager.h		\
+	cgmanager.c		\
 	unit.h			\
 	unit.c			\
 	ntp-unit.c		\
 	power-unit.c		\
+	cgroup-unit.c		\
 	systemd-iface.h		\
 	systemd-shim.c

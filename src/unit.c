@@ -55,6 +55,9 @@ lookup_unit (GVariant  *parameters,
   else if (g_str_equal (unit_name, "shutdown.target") || g_str_equal (unit_name, "poweroff.target"))
     unit = power_unit_new (POWER_OFF);
 
+  else if (g_str_has_suffix (unit_name, ".slice") || g_str_has_suffix (unit_name, ".scope"))
+    unit = cgroup_unit_new (unit_name);
+
   if (unit == NULL)
     g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_FILE_NOT_FOUND,
                  "Unknown unit: %s", unit_name);
@@ -76,6 +79,21 @@ unit_start (Unit *unit)
   g_return_if_fail (unit != NULL);
 
   return UNIT_GET_CLASS (unit)->start (unit);
+}
+
+void
+unit_start_transient (Unit     *unit,
+                      GVariant *properties)
+{
+  g_return_if_fail (unit != NULL);
+
+  if (!UNIT_GET_CLASS (unit)->start_transient)
+    {
+      g_warning ("%s does not implement StartTransient", G_OBJECT_TYPE_NAME (unit));
+      return;
+    }
+
+  return UNIT_GET_CLASS (unit)->start_transient (unit, properties);
 }
 
 void

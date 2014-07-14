@@ -157,7 +157,8 @@ cgroup_unit_stop (Unit *unit)
 static const gchar *
 cgroup_unit_get_state (Unit *unit)
 {
-  return "static";
+  CGroupUnit *gc = (CGroupUnit *)unit;
+  return gc->name;
 }
 
 Unit *

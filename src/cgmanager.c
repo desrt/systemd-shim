@@ -158,3 +158,9 @@ cgmanager_remove (const gchar *path)
 
   cgmanager_call ("Remove", g_variant_new ("(ssi)", "all", path, 1), G_VARIANT_TYPE ("(i)"));
 }
+
+void
+cgmanager_moveself (void)
+{
+  cgmanager_call ("MovePidAbs", g_variant_new ("(ssi)", "all", "/", getpid()), G_VARIANT_TYPE_UNIT);
+}

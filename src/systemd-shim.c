@@ -223,6 +223,7 @@ main (void)
                   shim_name_lost,
                   NULL, NULL);
 
+  cgmanager_moveself();
   while (1)
     g_main_context_iteration (NULL, TRUE);
 }

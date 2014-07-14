@@ -32,4 +32,6 @@ void cgmanager_create (const gchar *path,
 
 void cgmanager_remove (const gchar *path);
 
+void cgmanager_moveself (void);
+
 #endif /* _cgmanager_h_ */

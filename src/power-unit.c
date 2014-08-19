@@ -29,7 +29,7 @@ typedef UnitClass PowerUnitClass;
 static GType power_unit_get_type (void);
 
 const gchar *power_cmds[] = {
-  [POWER_OFF] = "/sbin/poweroff",
+  [POWER_OFF] = "/sbin/shutdown -h now",
   [POWER_REBOOT] = "/sbin/reboot",
   [POWER_SUSPEND] = "/usr/sbin/pm-suspend",
   [POWER_HIBERNATE] = "/usr/sbin/pm-hibernate"

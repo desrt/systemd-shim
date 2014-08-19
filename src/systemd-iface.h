@@ -37,6 +37,8 @@ const gchar *systemd_iface =
      "<arg name='properties' type='a(sv)' direction='in'/>"
      "<arg name='job' type='o' direction='out'/>"
     "</method>"
+    "<method name='Subscribe'/>"
+    "<method name='Unsubscribe'/>"
     "<property name='Virtualization' type='s' access='read'/>"
    "</interface>"
   "</node>";

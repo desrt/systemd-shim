@@ -101,6 +101,18 @@ shim_method_call (GDBusConnection       *connection,
       goto success;
     }
 
+  else if (g_str_equal (method_name, "Subscribe"))
+    {
+      g_dbus_method_invocation_return_value (invocation, NULL);
+      goto success;
+    }
+
+  else if (g_str_equal (method_name, "Unsubscribe"))
+    {
+      g_dbus_method_invocation_return_value (invocation, NULL);
+      goto success;
+    }
+
   else if (g_str_equal (method_name, "StopUnit"))
     {
       Unit *unit;

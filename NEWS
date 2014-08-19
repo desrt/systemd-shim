@@ -1,3 +1,14 @@
+Changes in version 7
+=====================
+
+ - changes to work with new logind version
+   - add stubs for Subscribe and Unsubscribe
+   - support cgroups with transient units for scopes and slices
+
+ - use "shutdown -h" instead of "poweroff" to respect /etc/default/halt
+
+ - sync dbus security policy file with upstream (systemd)
+
 Changes in version 6
 =====================
 

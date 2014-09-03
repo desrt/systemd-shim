@@ -1,6 +1,8 @@
 #ifndef _systemd_iface_h_
 #define _systemd_iface_h_
 
+#include "config.h"
+
 const gchar *systemd_iface =
   "<node>"
    "<interface name='org.freedesktop.systemd1.Manager'>"
@@ -35,6 +37,9 @@ const gchar *systemd_iface =
      "<arg name='name' type='s' direction='in'/>"
      "<arg name='mode' type='s' direction='in'/>"
      "<arg name='properties' type='a(sv)' direction='in'/>"
+#if SYSTEMD_VERSION >= 209
+     "<arg name='aux' type='a(sa(sv))' direction='in'/>"
+#endif
      "<arg name='job' type='o' direction='out'/>"
     "</method>"
     "<method name='Subscribe'/>"

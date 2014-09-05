@@ -71,31 +71,14 @@ cgmanager_connect (GError **error)
 }
 
 static void
-log_warning_on_error (GObject      *source,
-                      GAsyncResult *result,
-                      gpointer      user_data)
-{
-  GError *error = NULL;
-  GVariant *reply;
-
-  reply = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
-
-  if (reply)
-    g_variant_unref (reply);
-  else
-    {
-      g_warning ("cgmanager method call failed: %s.  Use G_DBUS_DEBUG=message for more info.", error->message);
-      g_error_free (error);
-    }
-}
-
-static void
 cgmanager_call (const gchar        *method_name,
                 GVariant           *parameters,
                 const GVariantType *reply_type)
 {
   static GDBusConnection *connection;
   static gboolean initialised;
+  GError *error = NULL;
+  GVariant *reply;
 
   /* Use a separate bool to prevent repeated attempts to connect to a
    * defunct cgmanager...
@@ -118,14 +101,22 @@ cgmanager_call (const gchar        *method_name,
   if (!connection)
     return;
 
-  /* Avoid round-trip delays: issue all calls at once and report errors
-   * asynchronously.  The user can enable GDBus debugging if they need
-   * more information about the exact call that failed...
+  /* We do this sync because we need to ensure that the calls finish
+   * before we return to _our_ caller saying that this is done.
    */
-  g_dbus_connection_call (connection, NULL, "/org/linuxcontainers/cgmanager",
-                          "org.linuxcontainers.cgmanager0_0", method_name,
-                          parameters, reply_type, G_DBUS_CALL_FLAGS_NONE,
-                          -1, NULL, log_warning_on_error, NULL);
+  reply = g_dbus_connection_call_sync (connection, NULL, "/org/linuxcontainers/cgmanager",
+                                       "org.linuxcontainers.cgmanager0_0", method_name,
+                                       parameters, reply_type, G_DBUS_CALL_FLAGS_NONE,
+                                       -1, NULL, &error);
+
+  if (reply)
+    g_variant_unref (reply);
+  else
+    {
+      g_warning ("cgmanager method call org.linuxcontainers.cgmanager0_0.%s failed: %s.  "
+                 "Use G_DBUS_DEBUG=message for more info.", method_name, error->message);
+      g_error_free (error);
+    }
 }
 
 void

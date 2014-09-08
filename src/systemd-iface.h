@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-const gchar *systemd_iface =
+static const gchar *systemd_iface =
   "<node>"
    "<interface name='org.freedesktop.systemd1.Manager'>"
     "<method name='GetUnitFileState'>"

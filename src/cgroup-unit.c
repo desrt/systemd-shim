@@ -17,9 +17,11 @@
  * USA.
  */
 
-#include "unit.h"
+#define _GNU_SOURCE
 
 #include "cgmanager.h"
+#include "state.h"
+#include "unit.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,6 +29,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <glib/gstdio.h>
 
 typedef UnitClass CGroupUnitClass;
 static GType cgroup_unit_get_type (void);
@@ -124,6 +127,7 @@ cgroup_unit_start_transient (Unit     *unit,
 
       path = cgroup_unit_get_path_and_uid (slice, cg_unit->name, &uid);
       cgmanager_create (path, uid, (const guint *) pids->data, pids->len);
+      state_set_string (cg_unit->name, "path", path);
       g_free (path);
     }
   else
@@ -147,13 +151,59 @@ cgroup_unit_start (Unit *unit)
 
   path = cgroup_unit_get_path_and_uid (cg_unit->name, NULL, &uid);
   cgmanager_create (path, uid, NULL, 0);
+  state_set_string (cg_unit->name, "path", path);
   g_free (path);
 }
 
 static void
 cgroup_unit_stop (Unit *unit)
 {
-  /* for now, no-op */
+  CGroupUnit *cg_unit = (CGroupUnit *) unit;
+  gboolean successful;
+  gint tries;
+  gchar *path;
+
+  path = state_get_string (cg_unit->name, "path");
+
+  if (!path)
+    {
+      g_warning ("can't Stop: cgroup unit not previously started");
+      return;
+    }
+
+  tries = 5;
+
+  do
+    {
+      cgmanager_kill (path);
+      successful = cgmanager_remove (path);
+    }
+  while (tries-- && !successful);
+
+  state_remove_unit (cg_unit->name);
+
+  g_free (path);
+}
+
+static void
+cgroup_unit_abandon (Unit *unit)
+{
+  CGroupUnit *cg_unit = (CGroupUnit *) unit;
+  gchar *path;
+
+  path = state_get_string (cg_unit->name, "path");
+
+  if (!path)
+    {
+      g_warning ("can't Abandon: cgroup unit not previously started");
+      return;
+    }
+
+  cgmanager_prune (path);
+
+  state_remove_unit (cg_unit->name);
+
+  g_free (path);
 }
 
 static const gchar *
@@ -185,5 +235,6 @@ cgroup_unit_class_init (UnitClass *class)
   class->start_transient = cgroup_unit_start_transient;
   class->start = cgroup_unit_start;
   class->stop = cgroup_unit_stop;
+  class->abandon = cgroup_unit_abandon;
   class->get_state = cgroup_unit_get_state;
 }

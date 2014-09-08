@@ -27,7 +27,7 @@
 #include <gio/gio.h>
 
 #define CGM_DBUS_ADDRESS          "unix:path=/sys/fs/cgroup/cgmanager/sock"
-#define CGM_REQUIRED_VERSION      6
+#define CGM_REQUIRED_VERSION      8
 
 static GDBusConnection *
 cgmanager_connect (GError **error)
@@ -147,8 +147,6 @@ cgmanager_create (const gchar *path,
 
   for (i = 0; i < n_pids; i++)
     cgmanager_call ("MovePid", g_variant_new ("(ssi)", "all", path, pids[i]), G_VARIANT_TYPE_UNIT, NULL);
-
-  cgmanager_call ("RemoveOnEmpty", g_variant_new ("(ss)", "all", path), G_VARIANT_TYPE_UNIT, NULL);
 }
 
 gboolean
@@ -164,4 +162,30 @@ void
 cgmanager_move_self (void)
 {
   cgmanager_call ("MovePidAbs", g_variant_new ("(ssi)", "all", "/", getpid ()), G_VARIANT_TYPE_UNIT, NULL);
+}
+
+void
+cgmanager_prune (const gchar *path)
+{
+  cgmanager_call ("Prune", g_variant_new ("(ss)", "all", path), G_VARIANT_TYPE_UNIT, NULL);
+}
+
+void
+cgmanager_kill (const gchar *path)
+{
+  GVariant *reply;
+
+  if (cgmanager_call ("GetTasksRecursive", g_variant_new ("(ss)", "all", path), G_VARIANT_TYPE ("(ai)"), &reply))
+    {
+      GVariantIter *iter;
+      guint32 pid;
+
+      g_variant_get (reply, "(ai)", &iter);
+
+      while (g_variant_iter_next (iter, "i", &pid))
+        kill (pid, SIGKILL);
+
+      g_variant_iter_free (iter);
+      g_variant_unref (reply);
+    }
 }

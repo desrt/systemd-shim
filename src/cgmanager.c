@@ -122,7 +122,7 @@ cgmanager_call (const gchar        *method_name,
 void
 cgmanager_create (const gchar *path,
                   gint         uid,
-                  guint       *pids,
+                  const guint *pids,
                   guint        n_pids)
 {
   guint i;

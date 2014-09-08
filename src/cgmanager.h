@@ -27,7 +27,7 @@
 
 void cgmanager_create (const gchar *path,
                        gint         uid,
-                       guint       *pids,
+                       const guint *pids,
                        guint        n_pids);
 
 void cgmanager_remove (const gchar *path);

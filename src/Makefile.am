@@ -18,5 +18,7 @@ systemd_shim_SOURCES = \
 	ntp-unit.c		\
 	power-unit.c		\
 	cgroup-unit.c		\
+	state.h			\
+	state.c			\
 	systemd-iface.h		\
 	systemd-shim.c

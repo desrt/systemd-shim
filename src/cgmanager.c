@@ -115,8 +115,9 @@ cgmanager_call (const gchar         *method_name,
 
   if (!*reply)
     {
-      g_warning ("cgmanager method call org.linuxcontainers.cgmanager0_0.%s failed: %s.  "
-                 "Use G_DBUS_DEBUG=message for more info.", method_name, error->message);
+      if (reply_type)
+        g_warning ("cgmanager method call org.linuxcontainers.cgmanager0_0.%s failed: %s.  "
+                   "Use G_DBUS_DEBUG=message for more info.", method_name, error->message);
       g_error_free (error);
 
       return FALSE;

@@ -151,13 +151,13 @@ cgmanager_create (const gchar *path,
   cgmanager_call ("RemoveOnEmpty", g_variant_new ("(ss)", "all", path), G_VARIANT_TYPE_UNIT, NULL);
 }
 
-void
+gboolean
 cgmanager_remove (const gchar *path)
 {
   if (path[0] == '/')
     path++;
 
-  cgmanager_call ("Remove", g_variant_new ("(ssi)", "all", path, 1), G_VARIANT_TYPE ("(i)"), NULL);
+  return cgmanager_call ("Remove", g_variant_new ("(ssi)", "all", path, 1), G_VARIANT_TYPE ("(i)"), NULL);
 }
 
 void

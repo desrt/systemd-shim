@@ -71,9 +71,11 @@ shim_method_call (GDBusConnection       *connection,
 
   if (g_str_equal (method_name, "GetUnitFileState"))
     {
+      const gchar *unit_name;
       Unit *unit;
 
-      unit = lookup_unit (parameters, &error);
+      g_variant_get_child (parameters, 0, "&s", &unit_name);
+      unit = lookup_unit (unit_name, &error);
 
       if (unit)
         {
@@ -116,9 +118,11 @@ shim_method_call (GDBusConnection       *connection,
 
   else if (g_str_equal (method_name, "StopUnit"))
     {
+      const gchar *unit_name;
       Unit *unit;
 
-      unit = lookup_unit (parameters, &error);
+      g_variant_get_child (parameters, 0, "&s", &unit_name);
+      unit = lookup_unit (unit_name, &error);
 
       if (unit)
         {
@@ -131,9 +135,11 @@ shim_method_call (GDBusConnection       *connection,
 
   else if (g_str_equal (method_name, "StartUnit"))
     {
+      const gchar *unit_name;
       Unit *unit;
 
-      unit = lookup_unit (parameters, &error);
+      g_variant_get_child (parameters, 0, "&s", &unit_name);
+      unit = lookup_unit (unit_name, &error);
 
       if (unit)
         {
@@ -148,9 +154,11 @@ shim_method_call (GDBusConnection       *connection,
     }
   else if (g_str_equal (method_name, "StartTransientUnit"))
     {
+      const gchar *unit_name;
       Unit *unit;
 
-      unit = lookup_unit (parameters, &error);
+      g_variant_get_child (parameters, 0, "&s", &unit_name);
+      unit = lookup_unit (unit_name, &error);
 
       if (unit)
         {

@@ -38,7 +38,7 @@ typedef struct
 } UnitClass;
 
 GType unit_get_type (void);
-Unit *lookup_unit (GVariant *parameters, GError **error);
+Unit *lookup_unit (const gchar *name, GError **error);
 const gchar *unit_get_state (Unit *unit);
 void unit_start_transient (Unit *unit, GVariant *properties);
 void unit_start (Unit *unit);

@@ -32,13 +32,10 @@ unit_class_init (UnitClass *class)
 }
 
 Unit *
-lookup_unit (GVariant  *parameters,
-             GError   **error)
+lookup_unit (const gchar  *unit_name,
+             GError      **error)
 {
-  const gchar *unit_name;
   Unit *unit = NULL;
-
-  g_variant_get_child (parameters, 0, "&s", &unit_name);
 
   if (g_str_equal (unit_name, "ntpd.service"))
     unit = ntp_unit_get ();

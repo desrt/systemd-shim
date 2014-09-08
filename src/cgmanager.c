@@ -147,8 +147,6 @@ cgmanager_create (const gchar *path,
 
   for (i = 0; i < n_pids; i++)
     cgmanager_call ("MovePid", g_variant_new ("(ssi)", "all", path, pids[i]), G_VARIANT_TYPE_UNIT, NULL);
-
-  cgmanager_call ("RemoveOnEmpty", g_variant_new ("(ss)", "all", path), G_VARIANT_TYPE_UNIT, NULL);
 }
 
 gboolean
@@ -164,4 +162,77 @@ void
 cgmanager_move_self (void)
 {
   cgmanager_call ("MovePidAbs", g_variant_new ("(ssi)", "all", "/", getpid ()), G_VARIANT_TYPE_UNIT, NULL);
+}
+
+void
+cgmanager_abandon (const gchar *path)
+{
+  cgmanager_call ("RemoveOnEmpty", g_variant_new ("(ss)", "all", path), G_VARIANT_TYPE_UNIT, NULL);
+
+  /* RemoveOnEmpty only removes the group if it _becomes_ empty.  If it
+   * is already empty, it will stick around.  Try to remove it
+   * ourselves.  Ignore errors.
+   */
+  cgmanager_call ("Remove", g_variant_new ("(ssi)", "all", path, 1), NULL, NULL);
+}
+
+void
+cgmanager_kill (const gchar *path)
+{
+  GVariant *reply;
+
+  if (cgmanager_call ("GetTasks", g_variant_new ("(ss)", "name=systemd", path), G_VARIANT_TYPE ("(ai)"), &reply))
+    {
+      GVariantIter *iter;
+      guint32 pid;
+
+      g_variant_get (reply, "(ai)", &iter);
+
+      while (g_variant_iter_next (iter, "i", &pid))
+        kill (pid, SIGKILL);
+
+      g_variant_iter_free (iter);
+      g_variant_unref (reply);
+    }
+}
+
+static void
+cgmanager_append_children (GPtrArray   *array,
+                           const gchar *path)
+{
+  GVariant *reply;
+
+  if (cgmanager_call ("ListChildren", g_variant_new ("(ss)", "name=systemd", path), G_VARIANT_TYPE ("(as)"), &reply))
+    {
+      const gchar **children;
+      gint i;
+
+      g_variant_get (reply, "(^as)", &children);
+      for (i = 0; children[i]; i++)
+        g_ptr_array_add (array, g_strconcat (path, "/", children[i], NULL));
+
+      g_variant_unref (reply);
+      g_free (children);
+    }
+}
+
+gchar **
+cgmanager_enumerate_paths (const gchar *below,
+                           guint       *n_paths)
+{
+  GPtrArray *array;
+  gint cur_idx;
+
+  array = g_ptr_array_new ();
+  cur_idx = 0;
+
+  g_ptr_array_add (array, g_strdup (below));
+  while (cur_idx < array->len)
+    cgmanager_append_children (array, array->pdata[cur_idx++]);
+
+  *n_paths = array->len;
+
+  g_ptr_array_add (array, NULL);
+
+  return (char **) g_ptr_array_free (array, FALSE);
 }

@@ -30,8 +30,15 @@ void cgmanager_create (const gchar *path,
                        const guint *pids,
                        guint        n_pids);
 
+void cgmanager_abandon (const gchar *path);
+
 gboolean cgmanager_remove (const gchar *path);
 
 void cgmanager_move_self (void);
+
+void cgmanager_kill (const gchar *scope);
+
+gchar ** cgmanager_enumerate_paths (const gchar *below,
+                                    guint       *n_paths);
 
 #endif /* _cgmanager_h_ */

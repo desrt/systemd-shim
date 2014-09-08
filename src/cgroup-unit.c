@@ -17,6 +17,8 @@
  * USA.
  */
 
+#define _GNU_SOURCE
+
 #include "unit.h"
 
 #include "cgmanager.h"
@@ -150,10 +152,90 @@ cgroup_unit_start (Unit *unit)
   g_free (path);
 }
 
+static gboolean
+cgroup_unit_path_matches (const gchar *path,
+                          const gchar *name)
+{
+  size_t pathlen = strlen (path);
+  size_t namelen = strlen (name);
+  const gchar *hit;
+
+  hit = memmem (path, pathlen, name, namelen);
+
+  /* No hit? */
+  if (!hit)
+    return FALSE;
+
+  /* Not at start of string or with '/' before? */
+  if (hit != path && hit[-1] != '/')
+    return FALSE;
+
+  /* Not at end of string or with '/' after? */
+  if (hit + namelen != path + pathlen && hit[namelen] != '/')
+    return FALSE;
+
+  return TRUE;
+}
+
+  /* Theoretically possible to do this more intelligently for slices,
+   * but let's do the dumb thing for now...
+   */
+#if 0
+  if (g_str_has_suffix (cg_unit->name, ".slice"))
+    {
+      gchar *first_path;
+
+      first_path = cgroup_unit_get_path_and_uid (cg_unit->name, NULL, NULL);
+      paths = cgmanager_enumerate_paths (first_path, &n);
+      g_free (first_path);
+    }
+#endif
+
 static void
 cgroup_unit_stop (Unit *unit)
 {
-  /* for now, no-op */
+  CGroupUnit *cg_unit = (CGroupUnit *) unit;
+  gboolean successful;
+  gint tries;
+
+  tries = 5;
+
+  do
+    {
+      gchar **paths;
+      guint n;
+
+      successful = TRUE;
+
+      paths = cgmanager_enumerate_paths ("user.slice", &n);
+
+      while (n--)
+        if (cgroup_unit_path_matches (paths[n], cg_unit->name))
+          {
+            cgmanager_kill (paths[n]);
+
+            successful &= cgmanager_remove (paths[n]);
+          }
+
+      g_strfreev (paths);
+    }
+  while (tries-- && !successful);
+}
+
+static void
+cgroup_unit_abandon (Unit *unit)
+{
+  CGroupUnit *cg_unit = (CGroupUnit *) unit;
+  gchar **paths;
+  guint n;
+
+  paths = cgmanager_enumerate_paths ("user.slice", &n);
+
+  while (n--)
+    if (cgroup_unit_path_matches (paths[n], cg_unit->name))
+      cgmanager_abandon (paths[n]);
+
+  g_strfreev (paths);
 }
 
 static const gchar *
@@ -185,5 +267,6 @@ cgroup_unit_class_init (UnitClass *class)
   class->start_transient = cgroup_unit_start_transient;
   class->start = cgroup_unit_start;
   class->stop = cgroup_unit_stop;
+  class->abandon = cgroup_unit_abandon;
   class->get_state = cgroup_unit_get_state;
 }

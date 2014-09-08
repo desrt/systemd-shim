@@ -100,3 +100,17 @@ unit_stop (Unit *unit)
 
   return UNIT_GET_CLASS (unit)->stop (unit);
 }
+
+void
+unit_abandon (Unit *unit)
+{
+  g_return_if_fail (unit != NULL);
+
+  if (!UNIT_GET_CLASS (unit)->start_transient)
+    {
+      g_warning ("%s does not implement StartTransient", G_OBJECT_TYPE_NAME (unit));
+      return;
+    }
+
+  return UNIT_GET_CLASS (unit)->abandon (unit);
+}

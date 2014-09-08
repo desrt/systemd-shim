@@ -19,6 +19,8 @@
 
 #include "unit.h"
 
+#include "cgmanager.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

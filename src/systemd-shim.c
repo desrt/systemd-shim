@@ -19,6 +19,7 @@
 
 #include <gio/gio.h>
 
+#include "cgmanager.h"
 #include "unit.h"
 #include "virt.h"
 
@@ -235,7 +236,8 @@ main (void)
                   shim_name_lost,
                   NULL, NULL);
 
-  cgmanager_moveself();
+  cgmanager_move_self ();
+
   while (1)
     g_main_context_iteration (NULL, TRUE);
 }

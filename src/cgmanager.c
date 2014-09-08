@@ -151,7 +151,7 @@ cgmanager_remove (const gchar *path)
 }
 
 void
-cgmanager_moveself (void)
+cgmanager_move_self (void)
 {
-  cgmanager_call ("MovePidAbs", g_variant_new ("(ssi)", "all", "/", getpid()), G_VARIANT_TYPE_UNIT);
+  cgmanager_call ("MovePidAbs", g_variant_new ("(ssi)", "all", "/", getpid ()), G_VARIANT_TYPE_UNIT);
 }

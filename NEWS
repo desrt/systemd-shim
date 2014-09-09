@@ -1,3 +1,17 @@
+Changes in version 8
+=====================
+
+ - build system cleanups, added some warning CFLAGS
+
+ - fixed some harmless warnings
+
+ - stop doing async calls to cgmanager to avoid races where we return
+   to our caller before the operation is actually complete
+
+ - fix StartTransientUnit signature for systemd >= 209
+
+ - add working support for StopUnit and Abandon on scopes
+
 Changes in version 7
 =====================
 

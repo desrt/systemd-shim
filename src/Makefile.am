@@ -7,8 +7,11 @@ systemd_imports = \
 	virt.h		\
 	virt.c
 
-libexec_PROGRAMS = systemd-shim
+libexec_PROGRAMS = systemd-shim systemd-shim-cgroup-release-agent
 systemd_shim_LDADD = $(gio_LIBS)
+systemd_shim_CPPFLAGS = \
+	-DLIBEXECDIR=\"$(libexecdir)\"	\
+	$(NULL)
 systemd_shim_SOURCES = \
 	$(systemd_imports)	\
 	cgmanager.h		\
@@ -22,3 +25,8 @@ systemd_shim_SOURCES = \
 	state.c			\
 	systemd-iface.h		\
 	systemd-shim.c
+
+systemd_shim_cgroup_release_agent_LDADD = $(gio_LIBS)
+systemd_shim_cgroup_release_agent_SOURCES = \
+	cgroup-release-agent.c	\
+	$(NULL)

@@ -147,6 +147,8 @@ cgmanager_create (const gchar *path,
 
   for (i = 0; i < n_pids; i++)
     cgmanager_call ("MovePid", g_variant_new ("(ssi)", "all", path, pids[i]), G_VARIANT_TYPE_UNIT, NULL);
+
+  cgmanager_call ("SetValue", g_variant_new ("(ssss)", "systemd", path, "notify_on_release", "1"), G_VARIANT_TYPE_UNIT, NULL);
 }
 
 gboolean
@@ -162,6 +164,13 @@ void
 cgmanager_move_self (void)
 {
   cgmanager_call ("MovePidAbs", g_variant_new ("(ssi)", "all", "/", getpid ()), G_VARIANT_TYPE_UNIT, NULL);
+
+  /* install our systemd cgroup release handler */
+  g_debug ("Installing cgroup release handler " LIBEXECDIR "/systemd-shim-cgroup-release-agent");
+  cgmanager_call ("SetValue",
+                  g_variant_new ("(ssss)", "systemd", "/", "release_agent", LIBEXECDIR "/systemd-shim-cgroup-release-agent"),
+                  G_VARIANT_TYPE_UNIT,
+                  NULL);
 }
 
 void

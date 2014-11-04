@@ -125,6 +125,7 @@ shim_method_call (GDBusConnection       *connection,
       Unit *unit;
 
       g_variant_get_child (parameters, 0, "&s", &unit_name);
+      g_debug ("StopUnit(%s)", unit_name);
       unit = lookup_unit (unit_name, &error);
 
       if (unit)
@@ -142,6 +143,7 @@ shim_method_call (GDBusConnection       *connection,
       Unit *unit;
 
       g_variant_get_child (parameters, 0, "&s", &unit_name);
+      g_debug ("StartUnit(%s)", unit_name);
       unit = lookup_unit (unit_name, &error);
 
       if (unit)
@@ -161,6 +163,7 @@ shim_method_call (GDBusConnection       *connection,
       Unit *unit;
 
       g_variant_get_child (parameters, 0, "&s", &unit_name);
+      g_debug ("StartTransientUnit(%s)", unit_name);
       unit = lookup_unit (unit_name, &error);
 
       if (unit)

@@ -314,6 +314,26 @@ shim_unit_method_call (GDBusConnection       *connection,
     g_assert_not_reached ();
 }
 
+static GVariant *
+shim_unit_get_property (GDBusConnection  *connection,
+                        const gchar      *sender,
+                        const gchar      *object_path,
+                        const gchar      *interface_name,
+                        const gchar      *property_name,
+                        GError          **error,
+                        gpointer          user_data)
+{
+  had_activity ();
+
+  /* FIXME: This is probably wrong for many cases, but the right value for
+   * logind cleaning up sessions */
+  if (g_strcmp0(property_name, "ActiveState") == 0) {
+      return g_variant_new_string ("inactive");
+  }
+
+  return NULL;
+}
+
 static gchar **
 shim_units_enumerate (GDBusConnection *connection,
                       const gchar     *sender,
@@ -340,6 +360,7 @@ shim_units_enumerate (GDBusConnection *connection,
 }
 
 static GDBusInterfaceInfo* shim_units_iface;
+static GDBusInterfaceInfo* shim_scope_iface;
 
 static GDBusInterfaceInfo **
 shim_units_introspect (GDBusConnection *connection,
@@ -348,7 +369,9 @@ shim_units_introspect (GDBusConnection *connection,
                        const gchar     *node,
                        gpointer         user_data)
 {
-  GDBusInterfaceInfo *result[2] = { g_dbus_interface_info_ref (shim_units_iface) };
+  GDBusInterfaceInfo *result[] = { g_dbus_interface_info_ref (shim_units_iface),
+                                   g_dbus_interface_info_ref (shim_scope_iface),
+                                   NULL };
 
   had_activity ();
 
@@ -365,7 +388,8 @@ shim_units_dispatch (GDBusConnection *connection,
                      gpointer         user_data)
 {
   static const GDBusInterfaceVTable vtable = {
-    shim_unit_method_call
+    shim_unit_method_call,
+    shim_unit_get_property
   };
 
   had_activity ();
@@ -393,7 +417,10 @@ shim_bus_acquired (GDBusConnection *connection,
   GDBusNodeInfo *node;
 
   node = g_dbus_node_info_new_for_xml (systemd_iface, NULL);
-  shim_units_iface = g_dbus_node_info_lookup_interface (node, "org.freedesktop.systemd1.Scope");
+  shim_scope_iface = g_dbus_node_info_lookup_interface (node, "org.freedesktop.systemd1.Scope");
+  g_assert (shim_scope_iface);
+  g_dbus_interface_info_ref (shim_scope_iface);
+  shim_units_iface = g_dbus_node_info_lookup_interface (node, "org.freedesktop.systemd1.Unit");
   g_assert (shim_units_iface);
   g_dbus_interface_info_ref (shim_units_iface);
 

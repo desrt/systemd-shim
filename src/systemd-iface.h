@@ -50,6 +50,9 @@ static const gchar *systemd_iface =
    "<interface name='org.freedesktop.systemd1.Scope'>"
     "<method name='Abandon'/>"
    "</interface>"
+   "<interface name='org.freedesktop.systemd1.Unit'>"
+    "<property name='ActiveState' type='s' access='read'/>"
+   "</interface>"
   "</node>";
 
 #endif

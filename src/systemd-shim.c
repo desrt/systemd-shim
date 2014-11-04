@@ -202,11 +202,16 @@ shim_get_property (GDBusConnection  *connection,
 
   had_activity ();
 
-  g_assert_cmpstr (property_name, ==, "Virtualization");
+  if (g_strcmp0(property_name, "Virtualization") == 0) {
+      detect_virtualization (&id);
+      return g_variant_new ("s", id);
+  }
 
-  detect_virtualization (&id);
+  if (g_strcmp0(property_name, "Version") == 0) {
+      return g_variant_new_take_string (g_strdup_printf("%d", SYSTEMD_VERSION));
+  }
 
-  return g_variant_new ("s", id);
+  return NULL;
 }
 
 static gchar *

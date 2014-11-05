@@ -23,6 +23,9 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+#include <unistd.h>
+#include <stdio.h>
+
 #define CGMANAGER_AGENT "/run/cgmanager/agents/cgm-release-agent.systemd"
 
 int
@@ -56,7 +59,7 @@ main (int argc, char** argv)
   g_object_unref (connection);
 
   /* Now chain-call cgmanager's agent */
-  if (g_access (CGMANAGER_AGENT, X_OK) == 0)
+  if (access (CGMANAGER_AGENT, X_OK) == 0)
     {
       g_debug ("calling " CGMANAGER_AGENT);
       execl (CGMANAGER_AGENT, CGMANAGER_AGENT, argv[1], NULL);

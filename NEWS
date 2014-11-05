@@ -1,3 +1,11 @@
+Changes in version 9
+=====================
+
+ - implement ActiveState and properly send UnitRemoved in order to allow
+   logind to GC its logged-out sessions
+
+ - don't install a D-Bus policy file
+
 Changes in version 8
 =====================
 

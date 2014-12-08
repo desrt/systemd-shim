@@ -37,7 +37,8 @@ lookup_unit (const gchar  *unit_name,
 {
   Unit *unit = NULL;
 
-  if (g_str_equal (unit_name, "ntpd.service"))
+  if (g_str_equal (unit_name, "ntpd.service") ||
+      g_str_equal (unit_name, "systemd-timesyncd.service"))
     unit = ntp_unit_get ();
 
   if (g_str_equal (unit_name, "suspend.target"))

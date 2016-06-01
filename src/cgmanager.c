@@ -163,7 +163,22 @@ cgmanager_remove (const gchar *path)
 void
 cgmanager_move_self (void)
 {
+  GVariant *reply;
+  gchar *str;
+
   cgmanager_call ("MovePidAbs", g_variant_new ("(ssi)", "all", "/", getpid ()), G_VARIANT_TYPE_UNIT, NULL);
+
+  int need_agent = 1;
+  if (cgmanager_call ("GetValue", g_variant_new ("(sss)", "systemd", "/", "release_agent"), G_VARIANT_TYPE ("(s)"), &reply))
+  {
+          g_variant_get(reply, "(s)", &str);
+          g_variant_unref(reply);
+          need_agent = strlen(str) < 1;
+          g_free(str);
+  }
+
+  if (!need_agent)
+          return;
 
   /* install our systemd cgroup release handler */
   g_debug ("Installing cgroup release handler " LIBEXECDIR "/systemd-shim-cgroup-release-agent");

@@ -1,3 +1,8 @@
+Changes in version 10
+=====================
+ - Use the ntp support for 'systemd-timesyncd.service' too.
+ - Don't override an existing release agent.
+
 Changes in version 9
 =====================
 
